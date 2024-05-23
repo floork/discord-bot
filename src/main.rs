@@ -1,5 +1,5 @@
 use clap::Parser;
-pub mod mensa_api;
+mod mensa_api;
 
 #[derive(Parser, Debug)]
 struct Args {
