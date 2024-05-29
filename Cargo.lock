@@ -669,20 +669,15 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 name = "mensa-cli"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "clap",
  "mensa-cli-backend",
- "serde",
- "shellexpand",
- "tabled",
  "tokio",
- "toml",
 ]
 
 [[package]]
 name = "mensa-cli-backend"
 version = "0.1.0"
-source = "git+https://github.com/floork/mensa-cli-backend.git#c1454b76b5cf71547adc3f8b97fa22054daf1eab"
+source = "git+https://github.com/floork/mensa-cli-backend.git#d9f36b4bff71c5a287f798fadee39621fd2cf9d8"
 dependencies = [
  "chrono",
  "reqwest",

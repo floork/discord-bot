@@ -1,7 +1,6 @@
 use chrono::{NaiveDate, Utc};
 use clap::Parser;
-use std::fs;
-use std::path::Path;
+extern crate mensa_cli_backend;
 
 mod args;
 mod cli;
@@ -77,25 +76,7 @@ async fn main() {
         }
     };
 
-    if args.id.is_some() && args.location.is_some() {
-        eprintln!("Use either location or id");
-        return;
-    }
-
-    let canteens = match fetch_canteens(&args, &configs).await {
-        Some(canteens) => canteens,
-        None => return,
-    };
-
-    let date = match parse_date(&args.date) {
-        Ok(date) => date,
-        Err(err) => {
-            eprintln!("Error parsing date: {}", err);
-            return;
-        }
-    };
-
-    if let Err(err) = print_meals(canteens, date).await {
-        eprintln!("Error printing meals: {}", err);
+    if let Err(err) = mensa_cli_backend::main().await {
+        eprintln!("Error: {}", err);
     }
 }
