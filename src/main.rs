@@ -1,5 +1,5 @@
 use clap::Parser;
-mod mensa_api;
+extern crate mensa_cli_backend;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -18,7 +18,7 @@ async fn main() {
 
     println!("{} {}", args.login, args.id);
 
-    if let Err(err) = mensa_api::main().await {
+    if let Err(err) = mensa_cli_backend::main().await {
         eprintln!("Error: {}", err);
     }
 }
