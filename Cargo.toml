@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+chrono = "0.4.38"
 clap = { version = "4.5.4", features = ["derive"] }
 mensa-cli-backend = { git = "https://github.com/floork/mensa-cli-backend.git" }
+serde = "1.0.203"
+shellexpand = "3.1.0"
 tokio = "1.37.0"
+toml = "0.8.14"
