@@ -1,72 +1,56 @@
-use chrono::prelude::*;
+use chrono::{NaiveDate, Utc};
 use clap::Parser;
-use serde::Deserialize;
 use std::fs;
 use std::path::Path;
-use tabled::{
-    settings::{object::Columns, Modify, Style, Width},
-    Table, Tabled,
-};
+
+mod args;
+mod cli;
+mod config;
+mod models;
+
+use args::Args;
+use cli::print_meals;
+use config::Configs;
 
 extern crate mensa_cli_backend;
+use mensa_cli_backend::{
+    get_canteens_by_id, get_canteens_by_ids, get_canteens_by_location, Canteen,
+};
 
-#[allow(dead_code)]
-#[derive(Parser, Debug)]
-struct Args {
-    #[clap(short = 'L', long, default_value = "")]
-    location: String,
-
-    #[clap(short, long, default_value = "1")]
-    id: u8,
-
-    #[clap(short = 'D', long, default_value = "today")]
-    date: String,
+fn parse_date(date_str: &str) -> Result<NaiveDate, String> {
+    match date_str {
+        "today" => Ok(Utc::now().date_naive()),
+        _ => NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+            .map_err(|err| format!("Invalid date format: {}", err)),
+    }
 }
 
-#[allow(dead_code)]
-#[derive(Deserialize, Debug)]
-struct Location {
-    cities: Vec<String>,
-    coordinates: Option<Vec<Coordinate>>,
-    canteens: Vec<u32>,
-}
+async fn fetch_canteens(args: &Args, configs: &Configs) -> Option<Vec<Canteen>> {
+    if let Some(id) = args.id {
+        return match get_canteens_by_id(id).await {
+            Ok(canteens) => Some(canteens),
+            Err(err) => {
+                eprintln!("Error fetching canteens by ID: {}", err);
+                None
+            }
+        };
+    }
 
-#[allow(dead_code)]
-#[derive(Deserialize, Debug)]
-struct Coordinate {
-    city: String,
-    latitude: f64,
-    longitude: f64,
-}
+    if let Some(location_str) = args.location.as_deref() {
+        return match get_canteens_by_location(location_str).await {
+            Ok(canteens) => Some(canteens),
+            Err(err) => {
+                eprintln!("Error fetching canteens by location: {}", err);
+                None
+            }
+        };
+    }
 
-#[derive(Deserialize, Debug)]
-struct Configs {
-    locations: Location,
-}
-
-// Wrapper struct for Meal to derive Tabled
-#[derive(Tabled)]
-struct TabledMeal {
-    id: u64,
-    name: String,
-    // category: String,
-    student_price: f64,
-    employee_price: f64,
-    guest_price: f64,
-    notes: String,
-}
-
-// Function to convert Meal to TabledMeal
-impl From<mensa_cli_backend::Meal> for TabledMeal {
-    fn from(meal: mensa_cli_backend::Meal) -> Self {
-        TabledMeal {
-            id: meal.id,
-            name: meal.name,
-            // category: meal.category,
-            student_price: meal.prices.students.unwrap_or(0.0),
-            employee_price: meal.prices.employees.unwrap_or(0.0),
-            guest_price: meal.prices.pupils.unwrap_or(0.0),
-            notes: meal.notes.join(", "),
+    match get_canteens_by_ids(configs.locations.canteens.to_vec()).await {
+        Ok(canteens) => Some(canteens),
+        Err(err) => {
+            eprintln!("Error fetching canteens by IDs: {}", err);
+            None
         }
     }
 }
@@ -93,55 +77,25 @@ async fn main() {
         }
     };
 
-    let args_date = args.date;
+    if args.id.is_some() && args.location.is_some() {
+        eprintln!("Use either location or id");
+        return;
+    }
 
-    let date: DateTime<Utc> = match args_date.as_str() {
-        "today" => Utc::now(),
-        _ => match NaiveDate::parse_from_str(&args_date, "%Y-%m-%d") {
-            Ok(naive_date) => {
-                if let Some(naive_datetime) = naive_date.and_hms_opt(0, 0, 0) {
-                    Utc.from_utc_datetime(&naive_datetime)
-                } else {
-                    panic!("Invalid date format: {}", args_date);
-                }
-            }
-            Err(_) => {
-                panic!("Invalid date format: {}", args_date);
-            }
-        },
+    let canteens = match fetch_canteens(&args, &configs).await {
+        Some(canteens) => canteens,
+        None => return,
     };
 
-    let date = date.date_naive();
-
-    let ids = &configs.locations.canteens;
-    let canteens = match mensa_cli_backend::get_canteens_by_ids(ids.to_vec()).await {
-        Ok(canteens) => canteens,
+    let date = match parse_date(&args.date) {
+        Ok(date) => date,
         Err(err) => {
-            eprintln!("Error: {}", err);
-            return; // Exit the function if there's an error
+            eprintln!("Error parsing date: {}", err);
+            return;
         }
     };
 
-    for canteen in canteens {
-        match mensa_cli_backend::get_meals(&canteen, &date.to_string()).await {
-            Ok(meals) => {
-                // Convert all_meals to TabledMeal
-                let tabled_meals: Vec<TabledMeal> =
-                    meals.into_iter().map(TabledMeal::from).collect();
-
-                // Print meals as a table
-                let mut table = Table::new(&tabled_meals);
-                table
-                    .with(Style::modern())
-                    .with(Modify::new(Columns::single(1)).with(Width::wrap(10).keep_words()))
-                    .with(Modify::new(Columns::last()).with(Width::wrap(10).keep_words()));
-
-                println!("{}", canteen.name);
-                println!("{}", table);
-            }
-            Err(err) => {
-                eprintln!("Error: {}", err);
-            }
-        }
+    if let Err(err) = print_meals(canteens, date).await {
+        eprintln!("Error printing meals: {}", err);
     }
 }
