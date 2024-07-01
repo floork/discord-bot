@@ -5,7 +5,9 @@
 pkgs.mkShell {
   buildInputs = [
     pkgs.gcc
-    pkgs.binutils
+    pkgs.pkg-config
     pkgs.openssl
+    pkgs.cargo
+    pkgs.rustc
   ];
 }

@@ -3,6 +3,10 @@ use clap::Parser;
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
+use tabled::{
+    settings::{object::Columns, Modify, Style, Width},
+    Table, Tabled,
+};
 
 extern crate mensa_cli_backend;
 
@@ -24,7 +28,7 @@ struct Args {
 struct Location {
     cities: Vec<String>,
     coordinates: Option<Vec<Coordinate>>,
-    canteens: Vec<u16>,
+    canteens: Vec<u32>,
 }
 
 #[allow(dead_code)]
@@ -38,6 +42,33 @@ struct Coordinate {
 #[derive(Deserialize, Debug)]
 struct Configs {
     locations: Location,
+}
+
+// Wrapper struct for Meal to derive Tabled
+#[derive(Tabled)]
+struct TabledMeal {
+    id: u64,
+    name: String,
+    // category: String,
+    student_price: f64,
+    employee_price: f64,
+    guest_price: f64,
+    notes: String,
+}
+
+// Function to convert Meal to TabledMeal
+impl From<mensa_cli_backend::Meal> for TabledMeal {
+    fn from(meal: mensa_cli_backend::Meal) -> Self {
+        TabledMeal {
+            id: meal.id,
+            name: meal.name,
+            // category: meal.category,
+            student_price: meal.prices.students.unwrap_or(0.0),
+            employee_price: meal.prices.employees.unwrap_or(0.0),
+            guest_price: meal.prices.pupils.unwrap_or(0.0),
+            notes: meal.notes.join(", "),
+        }
+    }
 }
 
 #[tokio::main]
@@ -91,18 +122,26 @@ async fn main() {
         }
     };
 
-    let mut all_meals: Vec<mensa_cli_backend::Meal> = Vec::new(); // Vector to store all meals
-
     for canteen in canteens {
-        match mensa_cli_backend::get_meals(&canteen, date).await {
+        match mensa_cli_backend::get_meals(&canteen, &date.to_string()).await {
             Ok(meals) => {
-                all_meals.extend(meals); // Add meals for this canteen to the vector
+                // Convert all_meals to TabledMeal
+                let tabled_meals: Vec<TabledMeal> =
+                    meals.into_iter().map(TabledMeal::from).collect();
+
+                // Print meals as a table
+                let mut table = Table::new(&tabled_meals);
+                table
+                    .with(Style::modern())
+                    .with(Modify::new(Columns::single(1)).with(Width::wrap(10).keep_words()))
+                    .with(Modify::new(Columns::last()).with(Width::wrap(10).keep_words()));
+
+                println!("{}", canteen.name);
+                println!("{}", table);
             }
             Err(err) => {
                 eprintln!("Error: {}", err);
             }
         }
     }
-
-    println!("{:#?}", all_meals);
 }
