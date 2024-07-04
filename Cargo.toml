@@ -4,12 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+chrono = "0.4.38"
 clap = { version = "4.5.4", features = ["derive"] }
 dotenv = "0.15.0"
 futures = "0.3.30"
 mensa-cli-backend = { git = "https://github.com/floork/mensa-cli-backend.git" }
 poise = "0.6.1"
+reqwest = "0.12.5"
 serde = "1.0.203"
+serenity = "0.12.2"
 shellexpand = "3.1.0"
 tabled = { version = "*", features = ["ansi"] }
 tokio = "1.37.0"
+toml = "0.8.14"
