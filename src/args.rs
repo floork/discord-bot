@@ -10,4 +10,10 @@ pub struct Args {
 
     #[clap(short = 'D', long, default_value = "today")]
     pub date: String,
+
+    #[clap(short = 'B', long, default_value = "false")]
+    pub discord_bot: bool,
+
+    #[clap(short = 'T', long, default_value = None)]
+    pub token: Option<String>,
 }

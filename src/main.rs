@@ -1,8 +1,11 @@
 use chrono::{NaiveDate, Utc};
 use clap::Parser;
-extern crate mensa_cli_backend;
+use dotenv::dotenv;
+use std::fs;
+use std::path::Path;
 
 mod args;
+mod bot;
 mod cli;
 mod config;
 mod models;
@@ -76,7 +79,43 @@ async fn main() {
         }
     };
 
-    if let Err(err) = mensa_cli_backend::main().await {
-        eprintln!("Error: {}", err);
+    if args.discord_bot {
+        if let Some(token) = args.token {
+            bot::start_bot(&token).await;
+            return;
+        }
+
+        let path = Path::new(".env");
+        if path.exists() {
+            dotenv().ok();
+            let token = std::env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set.");
+            bot::start_bot(&token).await;
+            return;
+        }
+
+        eprintln!("Please provide a Discord Token either as a parameter or in a .env file");
+        return;
+    }
+
+    if args.id.is_some() && args.location.is_some() {
+        eprintln!("Use either location or id");
+        return;
+    }
+
+    let canteens = match fetch_canteens(&args, &configs).await {
+        Some(canteens) => canteens,
+        None => return,
+    };
+
+    let date = match parse_date(&args.date) {
+        Ok(date) => date,
+        Err(err) => {
+            eprintln!("Error parsing date: {}", err);
+            return;
+        }
+    };
+
+    if let Err(err) = print_meals(canteens, date).await {
+        eprintln!("Error printing meals: {}", err);
     }
 }
