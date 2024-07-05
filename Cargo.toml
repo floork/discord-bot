@@ -8,7 +8,7 @@ chrono = "0.4.38"
 clap = { version = "4.5.4", features = ["derive"] }
 dotenv = "0.15.0"
 futures = "0.3.30"
-mensa-cli-backend = { git = "https://github.com/floork/mensa-cli-backend.git" }
+openmensa-rust-interface = { git = "https://github.com/floork/openmensa-rust-interface.git" }
 poise = "0.6.1"
 reqwest = "0.12.5"
 serde = "1.0.203"

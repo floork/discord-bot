@@ -1,6 +1,6 @@
 use crate::models::TabledMeal;
 use chrono::NaiveDate;
-use mensa_cli_backend::Canteen;
+use openmensa_rust_interface::Canteen;
 use tabled::{
     settings::{object::Columns, Modify, Style, Width},
     Table,
@@ -28,7 +28,7 @@ async fn get_meals_for_canteen(
     canteen: &Canteen,
     date: &NaiveDate,
 ) -> Result<Vec<TabledMeal>, String> {
-    let meals = mensa_cli_backend::get_meals(canteen, &date.to_string())
+    let meals = openmensa_rust_interface::get_meals(canteen, &date.to_string())
         .await
         .map_err(|e| e.to_string())?;
     let tabled_meals: Vec<TabledMeal> = meals.into_iter().map(TabledMeal::from).collect();
