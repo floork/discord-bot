@@ -25,6 +25,10 @@ jobs:
         git checkout release || git checkout -b release
         git pull origin release
 
+    - name: Merge tag into release
+      run: |
+        git merge --no-ff ${{ github.ref }} -m "Merge tag ${{ github.ref }} into release"
+
     - name: Push to release branch
       run: |
         git push origin release
