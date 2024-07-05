@@ -10,36 +10,66 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js (example)
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
 
-    - name: Install dependencies
-      run: npm install
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
 
-    - name: Build project
-      run: npm run build
+      - name: Build project
+        run: cargo build --release
 
-    - name: Create version
-      id: create_version
-      run: |
-        VERSION=$(date +%Y%m%d%H%M%S)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: discord-bot
+          path: target/release/discord-bot
 
-    - name: Archive build
-      run: |
-        mkdir -p release
-        cp -r dist/* release/
-        tar -czf release-${{ env.VERSION }}.tar.gz release/
-        echo "RELEASE_PKG=release-${{ env.VERSION }}.tar.gz" >> $GITHUB_ENV
+  release:
+    needs: build
+    runs-on: ubuntu-latest
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ${{ env.RELEASE_PKG }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: my-project
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this release:
+            - Describe your changes here
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/release/discord-bot
+          asset_name: my-project
+          asset_content_type: application/octet-stream
