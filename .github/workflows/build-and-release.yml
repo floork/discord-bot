@@ -1,0 +1,45 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js (example)
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build project
+      run: npm run build
+
+    - name: Create version
+      id: create_version
+      run: |
+        VERSION=$(date +%Y%m%d%H%M%S)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Archive build
+      run: |
+        mkdir -p release
+        cp -r dist/* release/
+        tar -czf release-${{ env.VERSION }}.tar.gz release/
+        echo "RELEASE_PKG=release-${{ env.VERSION }}.tar.gz" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ env.RELEASE_PKG }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
