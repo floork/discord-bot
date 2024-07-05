@@ -1,0 +1,23 @@
+name: Tag to Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Matches tags that start with 'v'
+
+jobs:
+  tag_to_release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Fetch all history so we can push tags
+
+    - name: Push to release branch
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git checkout -b release
+        git push origin release

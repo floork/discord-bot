@@ -60,7 +60,7 @@ async fn fetch_canteens(args: &Args, configs: &Configs) -> Option<Vec<Canteen>> 
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
-    let config_path = "~/.config/mensa-cli/config.toml";
+    let config_path = "~/.config/discord-bot/config.toml";
     let expanded_path = shellexpand::tilde(config_path).into_owned();
     let configs_file = match fs::read_to_string(Path::new(&expanded_path)) {
         Ok(contents) => contents,
