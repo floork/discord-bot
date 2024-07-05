@@ -14,9 +14,9 @@ use args::Args;
 use cli::print_meals;
 use config::Configs;
 
-extern crate mensa_cli_backend;
-use mensa_cli_backend::{
-    get_canteens_by_id, get_canteens_by_ids, get_canteens_by_location, Canteen,
+extern crate openmensa_rust_interface;
+use openmensa_rust_interface::{
+    get_canteen_by_id, get_canteens_by_ids, get_canteens_by_location, Canteen,
 };
 
 fn parse_date(date_str: &str) -> Result<NaiveDate, String> {
@@ -29,8 +29,12 @@ fn parse_date(date_str: &str) -> Result<NaiveDate, String> {
 
 async fn fetch_canteens(args: &Args, configs: &Configs) -> Option<Vec<Canteen>> {
     if let Some(id) = args.id {
-        return match get_canteens_by_id(id).await {
-            Ok(canteens) => Some(canteens),
+        return match get_canteen_by_id(id).await {
+            Ok(Some(canteen)) => Some(vec![canteen]), // Wrap the Canteen in a Vec
+            Ok(None) => {
+                eprintln!("Canteen not found by ID");
+                None
+            }
             Err(err) => {
                 eprintln!("Error fetching canteens by ID: {}", err);
                 None

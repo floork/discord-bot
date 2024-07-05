@@ -3,7 +3,7 @@ use super::uselessfact;
 use chrono::{NaiveDate, Utc};
 use futures::future;
 use futures::stream::{self, Stream, StreamExt};
-use mensa_cli_backend::{get_all_canteens, get_canteen_by_name, get_meals};
+use openmensa_rust_interface::{get_all_canteens, get_canteen_by_name, get_meals};
 use poise::CreateReply;
 use serenity::builder::CreateEmbed;
 use std::{collections::HashMap, sync::Mutex};
@@ -66,10 +66,15 @@ pub async fn meal(
 
     // Ensure canteen exists
     let meals = match get_canteen_by_name(&canteen).await {
-        Some(can) => get_meals(&can, &date_str).await?,
-        None => {
+        Ok(Some(can)) => get_meals(&can, &date_str).await?,
+        Ok(None) => {
             eprintln!("Canteen not found");
             ctx.say("Canteen not found.").await?;
+            return Ok(());
+        }
+        Err(err) => {
+            eprintln!("Error fetching canteen by name: {:?}", err);
+            ctx.say("Failed to fetch canteen.").await?;
             return Ok(());
         }
     };

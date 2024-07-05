@@ -1,4 +1,4 @@
-use mensa_cli_backend::Meal;
+use openmensa_rust_interface::Meal;
 use tabled::Tabled;
 
 #[derive(Tabled)]
