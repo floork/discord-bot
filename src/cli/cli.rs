@@ -1,3 +1,4 @@
+use crate::apis::{meme_api, uselessfact};
 use crate::models::TabledMeal;
 use chrono::NaiveDate;
 use openmensa_rust_interface::Canteen;
@@ -43,4 +44,37 @@ fn print_table(tabled_meals: &[TabledMeal]) {
         .with(Modify::new(Columns::last()).with(Width::wrap(10).keep_words()));
 
     println!("{}", table);
+}
+
+pub async fn meme() {
+    match meme_api::get().await {
+        Ok(meme) => {
+            println!("{}", meme.url);
+        }
+        Err(err) => {
+            eprintln!("Error fetching meme: {:?}", err);
+        }
+    }
+}
+
+pub async fn daily_fact() {
+    match uselessfact::daily(Some(String::from("de"))).await {
+        Ok(fact) => {
+            println!("{}", fact.text);
+        }
+        Err(err) => {
+            eprintln!("Error fetching daily fact: {:?}", err);
+        }
+    }
+}
+
+pub async fn random_fact() {
+    match uselessfact::random(Some(String::from("de"))).await {
+        Ok(fact) => {
+            println!("{}", fact.text)
+        }
+        Err(err) => {
+            eprintln!("Error fetching random fact: {:?}", err);
+        }
+    }
 }

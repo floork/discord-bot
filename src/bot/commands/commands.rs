@@ -1,5 +1,3 @@
-use super::meme_api;
-use super::uselessfact;
 use chrono::{NaiveDate, Utc};
 use futures::future;
 use futures::stream::{self, Stream, StreamExt};
@@ -7,6 +5,8 @@ use openmensa_rust_interface::{get_all_canteens, get_canteen_by_name, get_meals}
 use poise::CreateReply;
 use serenity::builder::CreateEmbed;
 use std::{collections::HashMap, sync::Mutex};
+
+use crate::apis::{meme_api, uselessfact};
 
 pub struct Data {
     pub votes: Mutex<HashMap<String, u32>>,

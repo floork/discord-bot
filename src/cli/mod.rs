@@ -1,3 +1,3 @@
 pub mod cli;
 
-pub use cli::print_meals;
+pub use cli::{daily_fact, meme, print_meals, random_fact};
