@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*' # Matches tags that start with 'v'
+  workflow_dispatch:
 
 jobs:
   tag_to_release:
@@ -45,3 +46,9 @@ jobs:
           Release for tag ${{ github.ref }}
         draft: false
         prerelease: false
+  build:
+    needs: tag_to_release
+    uses: ./.github/workflows/build.yml
+  release:
+    needs: build
+    uses: ./.github/workflows/release.yml

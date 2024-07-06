@@ -1,12 +1,10 @@
+name: release
+
 on:
-  release:
-    types: [created]
+  workflow_call:
 
 jobs:
-  build:
-    uses: ./.github/workflows/build.yml
   release:
-    needs: build
     name: release ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
