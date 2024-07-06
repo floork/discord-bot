@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*' # Matches tags that start with 'v'
+  workflow_dispatch:
 
 jobs:
   tag_to_release:
@@ -32,3 +33,22 @@ jobs:
     - name: Push to release branch
       run: |
         git push origin release
+
+    - name: Create GitHub release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        body: |
+          Release for tag ${{ github.ref }}
+        draft: false
+        prerelease: false
+  build:
+    needs: tag_to_release
+    uses: ./.github/workflows/build.yml
+  release:
+    needs: build
+    uses: ./.github/workflows/release.yml
