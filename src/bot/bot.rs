@@ -6,6 +6,9 @@ use std::{
     time::Duration,
 };
 
+/// Handles errors encountered by the poise framework.
+///
+/// This function matches various types of framework errors and prints appropriate error messages.
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     match error {
         poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
@@ -20,6 +23,11 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     }
 }
 
+/// Starts the Discord bot with the specified token.
+///
+/// # Arguments
+///
+/// * `token` - The Discord bot token used for authentication.
 pub async fn start_bot(token: &str) {
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value

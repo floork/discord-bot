@@ -30,7 +30,7 @@ use openmensa_rust_interface::{
 /// Returns `Ok(NaiveDate)` if parsing is successful, otherwise returns `Err(String)`.
 fn parse_date(date_str: &str) -> Result<NaiveDate, String> {
     match date_str {
-        "today" => Ok(Utc::now().date().naive_local()), // Using naive_local() for compatibility
+        "today" => Ok(Utc::now().date_naive()), // Using naive_local() for compatibility
         _ => NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
             .map_err(|err| format!("Invalid date format: {}", err)),
     }
