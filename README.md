@@ -1,4 +1,4 @@
-`~/.config/mensa-cli/config.toml`
+`~/.config/discord-bot/config.toml`
 
 ```toml
 [locations]
