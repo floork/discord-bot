@@ -3,6 +3,6 @@ FROM rust:slim-bookworm
 WORKDIR /usr/src/myapp
 COPY . .
 
-RUN cargo install --path .
+RUN cargo build --release
 
-CMD ["bash"]
+CMD ["target/release/discord-bot"]
