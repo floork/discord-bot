@@ -23,6 +23,10 @@ pub struct Args {
     #[clap(short = 'T', long)]
     pub token: Option<String>,
 
+    /// Set the path for the .env file containing the token
+    #[clap(short = 'E', long)]
+    pub env_file: Option<String>,
+
     /// Display a random meme.
     #[clap(short = 'M', long)]
     pub meme: bool,

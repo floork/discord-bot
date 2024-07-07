@@ -80,6 +80,62 @@ async fn fetch_canteens(args: &Args, configs: &Configs) -> Option<Vec<Canteen>> 
     }
 }
 
+/// Reads and returns the bot token based on the provided arguments.
+///
+/// # Arguments
+///
+/// * `args` - A reference to `Args` struct containing command-line arguments.
+///
+/// # Returns
+///
+/// Returns `Ok(String)` if a token is found, otherwise returns `Err(String)`.
+fn get_bot_token(args: &Args) -> Result<String, String> {
+    if args.token.is_none() && args.env_file.is_none() {
+        let path = Path::new(".env");
+        if !path.exists() {
+            return Err(
+                "Please provide a Discord Token either as a parameter or in a .env file".into(),
+            );
+        }
+
+        dotenv().ok();
+        return std::env::var("DISCORD_TOKEN")
+            .map_err(|_| "Could not find \"DISCORD_TOKEN\" in .env file".into());
+    }
+
+    if let Some(ref env_path) = args.env_file {
+        let path = Path::new(env_path);
+        if !path.exists() {
+            return Err("Wrong path passed to arg".into());
+        }
+
+        dotenv().ok();
+        return std::env::var("DISCORD_TOKEN")
+            .map_err(|_| "Could not find \"DISCORD_TOKEN\" in .env file".into());
+    }
+
+    if let Some(ref arg_token) = args.token {
+        return Ok(arg_token.clone());
+    }
+
+    Err("No valid token source provided".into())
+}
+
+/// Handles Discord bot functionality.
+///
+/// # Arguments
+///
+/// * `args` - A reference to `Args` struct containing command-line arguments.
+///
+/// # Returns
+///
+/// Returns `Ok(())` if the bot starts successfully, otherwise returns `Err(String)`.
+async fn handle_discord_bot(args: &Args) -> Result<(), String> {
+    let token = get_bot_token(args)?;
+    bot::start_bot(&token).await;
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
@@ -106,21 +162,8 @@ async fn main() {
 
     // Handle Discord bot functionality
     if args.discord_bot {
-        let token = args.token.or_else(|| {
-            let path = Path::new(".env");
-            if path.exists() {
-                dotenv().ok();
-                std::env::var("DISCORD_TOKEN").ok()
-            } else {
-                None
-            }
-        });
-
-        if let Some(token) = token {
-            bot::start_bot(&token).await;
-            return;
-        } else {
-            eprintln!("Please provide a Discord Token either as a parameter or in a .env file");
+        if let Err(err) = handle_discord_bot(&args).await {
+            eprintln!("{}", err);
             return;
         }
     }
