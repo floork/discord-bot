@@ -1,0 +1,16 @@
+name: Push to Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  push-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Upload package to GitHub Release
+      run: |
+        gh release upload ${{ github.ref }} target/release/discord-bot
