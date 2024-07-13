@@ -226,3 +226,18 @@ pub async fn random_fact(ctx: Context<'_>) -> Result<(), Error> {
         }
     }
 }
+
+/// Command to show the origin of the Bot
+///
+/// # Arguments
+///
+/// * `ctx` - The context for executing the command.
+///
+/// # Returns
+///
+/// A result indicating success (`Ok`) or an error (`Err`) if fetching or sending fails.
+#[poise::command(slash_command)]
+pub async fn bot(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("https://github.com/floork/discord-bot.git").await?;
+    Ok(())
+}
