@@ -143,6 +143,15 @@ async fn main() {
     // Read configuration file
     let config_path = "~/.config/discord-bot/config.toml";
     let expanded_path = shellexpand::tilde(config_path).into_owned();
+
+    // Handle Discord bot functionality
+    if args.discord_bot {
+        if let Err(err) = handle_discord_bot(&args).await {
+            eprintln!("{}", err);
+            return;
+        }
+    }
+
     let configs_file = match fs::read_to_string(Path::new(&expanded_path)) {
         Ok(contents) => contents,
         Err(err) => {
@@ -159,14 +168,6 @@ async fn main() {
             return;
         }
     };
-
-    // Handle Discord bot functionality
-    if args.discord_bot {
-        if let Err(err) = handle_discord_bot(&args).await {
-            eprintln!("{}", err);
-            return;
-        }
-    }
 
     // Handle CLI commands or print meals for canteens
     if args.meme {
